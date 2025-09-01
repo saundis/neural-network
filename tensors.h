@@ -1,7 +1,8 @@
 # ifndef TENSORS_H
 # define TENSORS_H
 #include <vector>
-#include <initializer_list>
+#include <iostream>
+#include <memory>
 
 class Tensor{
 public:
@@ -17,7 +18,12 @@ public:
     const float& item() const;
     float& item();
 
-    std::vector<float>& getData() { return m_data;  } 
+    std::shared_ptr<Tensor> operator+(std::shared_ptr<Tensor> other);
+    std::shared_ptr<Tensor> operator*(std::shared_ptr<Tensor> other);
+    friend std::ostream& operator<<(std::ostream& os, const Tensor& obj);
+
+    const std::vector<float>& data() const { return m_data; }
+    const std::vector<std::size_t>& shape() const { return m_shape; }
     
 private:
     std::vector<float> m_data{};
