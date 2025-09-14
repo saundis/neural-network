@@ -1,0 +1,3 @@
+C:/Users/Sebastian/Documents/Coding/Github/neural-network/build/CMakeFiles/CudaCombined.dir
+C:/Users/Sebastian/Documents/Coding/Github/neural-network/build/CMakeFiles/ALL_BUILD.dir
+C:/Users/Sebastian/Documents/Coding/Github/neural-network/build/CMakeFiles/ZERO_CHECK.dir

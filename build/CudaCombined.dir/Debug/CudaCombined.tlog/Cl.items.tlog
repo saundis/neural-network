@@ -1,0 +1,12 @@
+C:\Users\Sebastian\Documents\Coding\Github\neural-network\main.cpp;C:\Users\Sebastian\Documents\Coding\Github\neural-network\build\CudaCombined.dir\Debug\main.obj
+C:\Users\Sebastian\Documents\Coding\Github\neural-network\neural_network\tensors.cpp;C:\Users\Sebastian\Documents\Coding\Github\neural-network\build\CudaCombined.dir\Debug\neural_network\tensors.cpp.obj
+C:\Users\Sebastian\Documents\Coding\Github\neural-network\neural_network\serialization.cpp;C:\Users\Sebastian\Documents\Coding\Github\neural-network\build\CudaCombined.dir\Debug\serialization.obj
+C:\Users\Sebastian\Documents\Coding\Github\neural-network\neural_network\sgd.cpp;C:\Users\Sebastian\Documents\Coding\Github\neural-network\build\CudaCombined.dir\Debug\sgd.obj
+C:\Users\Sebastian\Documents\Coding\Github\neural-network\neural_network\modules\flatten.cpp;C:\Users\Sebastian\Documents\Coding\Github\neural-network\build\CudaCombined.dir\Debug\flatten.obj
+C:\Users\Sebastian\Documents\Coding\Github\neural-network\neural_network\modules\linear.cpp;C:\Users\Sebastian\Documents\Coding\Github\neural-network\build\CudaCombined.dir\Debug\linear.obj
+C:\Users\Sebastian\Documents\Coding\Github\neural-network\neural_network\modules\module.cpp;C:\Users\Sebastian\Documents\Coding\Github\neural-network\build\CudaCombined.dir\Debug\module.obj
+C:\Users\Sebastian\Documents\Coding\Github\neural-network\neural_network\modules\relu.cpp;C:\Users\Sebastian\Documents\Coding\Github\neural-network\build\CudaCombined.dir\Debug\relu.obj
+C:\Users\Sebastian\Documents\Coding\Github\neural-network\neural_network\modules\softmax.cpp;C:\Users\Sebastian\Documents\Coding\Github\neural-network\build\CudaCombined.dir\Debug\softmax.obj
+C:\Users\Sebastian\Documents\Coding\Github\neural-network\neural_network\modules\loss.cpp;C:\Users\Sebastian\Documents\Coding\Github\neural-network\build\CudaCombined.dir\Debug\loss.obj
+C:\Users\Sebastian\Documents\Coding\Github\neural-network\neural_network\data\datasets.cpp;C:\Users\Sebastian\Documents\Coding\Github\neural-network\build\CudaCombined.dir\Debug\datasets.obj
+C:\Users\Sebastian\Documents\Coding\Github\neural-network\neural_network\data\dataloader.cpp;C:\Users\Sebastian\Documents\Coding\Github\neural-network\build\CudaCombined.dir\Debug\dataloader.obj
