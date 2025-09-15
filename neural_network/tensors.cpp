@@ -1,9 +1,11 @@
 #include "tensors.h"
 #include <iostream>
 #include <string>
+#include <string_view>
 #include <algorithm>
 
-extern "C" void runKernel(const float* input1, const float* input2, float* output, std::size_t n1, std::size_t n2, std::size_t n3);
+extern "C" void runKernel(const float* input1, const float* input2, float* output, 
+    std::size_t n1, std::size_t n2, std::size_t n3, std::string_view operation, std::size_t subSize = 0, std::size_t curr = 0);
 
 // Scalar
 Tensor::Tensor(float data, bool requires_grad,
@@ -179,23 +181,19 @@ void Tensor::addToGrad(const std::vector<float>& gradUpdate) {
 
 // Tensor multiplication
 std::shared_ptr<Tensor> Tensor::operator*(std::shared_ptr<Tensor> other) {
-    if (m_shape.size() == 0 || other->shape().size() == 0)
-    {
+    if (m_shape.size() == 0 || other->shape().size() == 0) {
         throw std::invalid_argument("Both arguments needs to be at least 1D for matmul.");
     }
-    if (m_shape[m_shape.size() - 1] != other->shape()[0])
-    {
+    if (m_shape[m_shape.size() - 1] != other->shape()[0]) {
         throw std::invalid_argument(
             "Last dimension of first tensor doesn't have same size as first dimension of second.");
     }
     // 1D x 1D -> float
-    if (m_shape.size() == 1 && other->shape().size() == 1)
-    {
+    if (m_shape.size() == 1 && other->shape().size() == 1) {
         float result = 0.0f;
-        for (std::size_t i = 0; i < m_shape[0]; i++)
-        {
+        for (std::size_t i = 0; i < m_shape[0]; i++) {
             result += operator()(i) * (*other)(i);
-        }
+        } 
         if (m_requires_grad || other -> requiresGrad()) {
             std::shared_ptr<Tensor> self{ shared_from_this() };
             std::vector<std::shared_ptr<Tensor>> parents{ self, other };
@@ -217,11 +215,9 @@ std::shared_ptr<Tensor> Tensor::operator*(std::shared_ptr<Tensor> other) {
         return std::make_shared<Tensor>(result);
     }
     // 2D x 1D -> 1D
-    else if (m_shape.size() == 2 && other->shape().size() == 1)
-    {
+    else if (m_shape.size() == 2 && other->shape().size() == 1) {
         std::vector<float> result{};
-        for (std::size_t i = 0; i < m_shape[0]; i++)
-        {
+        for (std::size_t i = 0; i < m_shape[0]; i++) {
             float result_i = 0.0f;
             for (std::size_t j = 0; j < m_shape[1]; j++)
             {
@@ -263,8 +259,7 @@ std::shared_ptr<Tensor> Tensor::operator*(std::shared_ptr<Tensor> other) {
         return std::make_shared<Tensor>(result);
     }
     // 1D x 2D -> 1D
-    else if (m_shape.size() == 1 && other->shape().size() == 2)
-    {
+    else if (m_shape.size() == 1 && other->shape().size() == 2) {
         std::vector<float> result{};
         for (std::size_t i{0}; i < other->shape()[1]; ++i)
         {
@@ -273,6 +268,11 @@ std::shared_ptr<Tensor> Tensor::operator*(std::shared_ptr<Tensor> other) {
             {
                 result_i += operator()(j) * (*other)(j, i);
             }
+            float result2{0.0f};
+            // Turns out this is a lot slower
+            // runKernel(m_data.data(), ((other->data()).data()), &result2,
+            //           m_data.size(), (other->data()).size(), 1, "multiply", static_cast<std::size_t>(other->shape()[1]), i);
+            std::cout << "REAL: " << result_i << " NEW: " << result2 << '\n';
             result.push_back(result_i);
         }
         if (m_requires_grad || other -> requiresGrad()) {
@@ -380,7 +380,7 @@ std::shared_ptr<Tensor> Tensor::operator*(std::shared_ptr<Tensor> other) {
 std::shared_ptr<Tensor> Tensor::operator+(std::shared_ptr<Tensor> other) {
     // Scalar + scalar
     if (m_shape.size() == 0 && other -> shape().size() == 0) {
-        float result = item() + other->item();
+        float result{item() + other->item()};
         if (m_requires_grad || other -> requiresGrad()) {
             std::shared_ptr<Tensor> self{ shared_from_this() };
             std::vector<std::shared_ptr<Tensor>> parents{self, other};
@@ -397,10 +397,9 @@ std::shared_ptr<Tensor> Tensor::operator+(std::shared_ptr<Tensor> other) {
     }
     // Scalar + 1D
     if (m_shape.size() == 0 && other -> shape().size() == 1) {
-        std::vector<float> result{};
-        for (std::size_t i{0}; i < other->shape()[0]; ++i) {
-            result.push_back(item()+((*other)(i)));
-        }
+        std::vector<float> result(other->shape()[0]);
+        runKernel(m_data.data(), (other->data()).data(), result.data(),
+                  m_data.size(), (other->data()).size(), result.size(), "add");
         if (m_requires_grad || other -> requiresGrad()) {
             std::shared_ptr<Tensor> self{ shared_from_this() };
             std::vector<std::shared_ptr<Tensor>> parents{ self, other };
@@ -408,9 +407,13 @@ std::shared_ptr<Tensor> Tensor::operator+(std::shared_ptr<Tensor> other) {
                 [self, other](const std::vector<float>& grad_output){
                     // Broadcast in forward = sum in backward
                     float grad_self{0.0f};
+                    float test_grad{0.0f};
                     for (std::size_t i{0}; i < grad_output.size(); ++i) {
-                        grad_self += grad_output[i];
+                        test_grad += grad_output[i];
                     }
+                    runKernel((self->data()).data(), nullptr, &grad_self,
+                            (self->data()).size(), 0, 1, "sum");
+                    std::cout << "Real: " << test_grad << " New: " << grad_self << '\n';
                     self -> addToGrad({grad_self});
                     other -> addToGrad(grad_output);
                 }
@@ -423,10 +426,9 @@ std::shared_ptr<Tensor> Tensor::operator+(std::shared_ptr<Tensor> other) {
     if (m_shape.size() == 0 && other -> shape().size() == 2) {
         std::vector<std::vector<float>> result{};
         for (std::size_t i{0}; i < other->shape()[0]; ++i) {
-            std::vector<float> result_i{};
-            for (std::size_t j{0}; j < other->shape()[1]; ++j) {
-                result_i.push_back(item() + (*other)(i, j));
-            }
+            std::vector<float> result_i(other->shape()[1]);
+            runKernel(m_data.data(), ((other->data()).data()) + (i * (other->shape()[1])), result_i.data(),
+                  m_data.size(), static_cast<std::size_t>(other->shape()[1]), result_i.size(), "add");
             result.push_back(result_i);
         }
         if (m_requires_grad || other -> requiresGrad()) {
@@ -449,10 +451,9 @@ std::shared_ptr<Tensor> Tensor::operator+(std::shared_ptr<Tensor> other) {
     }
     // 1D + Scalar
     if (other -> shape().size() == 0 && m_shape.size() == 1) {
-        std::vector<float> result{};
-        for (std::size_t i{0}; i < shape()[0]; ++i) {
-            result.push_back(operator()(i)+(other -> item()));
-        }
+        std::vector<float> result(shape()[0]);
+        runKernel(m_data.data(), (other->data()).data(), result.data(),
+                  m_data.size(), (other->data()).size(), result.size(), "add");
         if (m_requires_grad || other -> requiresGrad()) {
             std::shared_ptr<Tensor> self{ shared_from_this() };
             std::vector<std::shared_ptr<Tensor>> parents{ self, other };
@@ -506,7 +507,7 @@ std::shared_ptr<Tensor> Tensor::operator+(std::shared_ptr<Tensor> other) {
     if (m_shape.size() == 1) {
         std::vector<float> result(shape()[0]);
         runKernel(m_data.data(), (other->data()).data(), result.data(),
-                  m_data.size(), (other->data()).size(), result.size());
+                  m_data.size(), (other->data()).size(), result.size(), "add");
         if (m_requires_grad || other -> requiresGrad()) {
             std::shared_ptr<Tensor> self{ shared_from_this() };
             std::vector<std::shared_ptr<Tensor>> parents{ self, other };
