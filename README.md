@@ -1,6 +1,6 @@
 # Neural Network
 
-A minimal PyTorch-inspired deep-learning framework written from scratch in **C++** and **CUDA**.
+A minimal PyTorch-inspired deep-learning framework written from scratch in **C++**.
 
 ## Features
 
